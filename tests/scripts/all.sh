@@ -918,6 +918,10 @@ helper_libtestdriver1_make_main() {
 #
 # Indicative running times are given for reference.
 
+component_check_dummy () {
+    : # This is a dummy test for CI testing
+}
+
 component_check_recursion () {
     msg "Check: recursion.pl" # < 1s
     tests/scripts/recursion.pl library/*.c
