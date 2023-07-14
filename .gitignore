@@ -71,3 +71,7 @@ massif-*
 
 # Clangd compilation database
 compile_commands.json
+
+# xpm
+/*.tgz
+

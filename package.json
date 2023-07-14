@@ -1,0 +1,13 @@
+{
+	"name": "@lix/mbedtls",
+	"version": "2.28-1",
+	"description": "An open source, portable, easy to use, readable and flexible TLS library, and reference implementation of the PSA Cryptography API",
+	"author": {
+		"name": "Lix N. Paulian",
+		"email": "lix@paulian.net"
+	},
+	"license": "Apache-2.0",
+	"xpack": {
+		"minimumXpmRequired": "0.16.2"
+	}
+}
