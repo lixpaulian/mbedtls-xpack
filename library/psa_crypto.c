@@ -3,19 +3,7 @@
  */
 /*
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #include "common.h"
@@ -1472,6 +1460,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot;
 
     /* Reject a zero-length output buffer now, since this can never be a
@@ -1498,7 +1487,7 @@ psa_status_t psa_export_public_key(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
     status = psa_driver_wrapper_export_public_key(
@@ -2406,6 +2395,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot = NULL;
 
     /* A context must be freshly initialized before it can be set up. */
@@ -2423,7 +2413,7 @@ static psa_status_t psa_mac_setup(psa_mac_operation_t *operation,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -2594,6 +2584,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot;
     uint8_t operation_mac_size = 0;
 
@@ -2606,7 +2597,7 @@ static psa_status_t psa_mac_compute_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -2732,6 +2723,7 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot;
 
     *signature_length = 0;
@@ -2764,7 +2756,7 @@ static psa_status_t psa_sign_internal(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t)  {
         .core = slot->attr
     };
 
@@ -3303,6 +3295,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot = NULL;
     psa_key_usage_t usage = (cipher_operation == MBEDTLS_ENCRYPT ?
                              PSA_KEY_USAGE_ENCRYPT :
@@ -3338,7 +3331,7 @@ static psa_status_t psa_cipher_setup(psa_cipher_operation_t *operation,
     }
     operation->default_iv_length = PSA_CIPHER_IV_LENGTH(slot->attr.type, alg);
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -3388,7 +3381,7 @@ psa_status_t psa_cipher_generate_iv(psa_cipher_operation_t *operation,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
-    size_t default_iv_length;
+    size_t default_iv_length = 0;
 
     if (operation->id == 0) {
         status = PSA_ERROR_BAD_STATE;
@@ -3561,6 +3554,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot = NULL;
     uint8_t local_iv[PSA_CIPHER_IV_MAX_SIZE];
     size_t default_iv_length = 0;
@@ -3577,7 +3571,7 @@ psa_status_t psa_cipher_encrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -3633,6 +3627,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
 {
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
+    psa_key_attributes_t attributes;
     psa_key_slot_t *slot = NULL;
 
     if (!PSA_ALG_IS_CIPHER(alg)) {
@@ -3647,7 +3642,7 @@ psa_status_t psa_cipher_decrypt(mbedtls_svc_key_id_t key,
         goto exit;
     }
 
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -4251,6 +4246,7 @@ static psa_status_t psa_generate_derived_key_internal(
     uint8_t *data = NULL;
     size_t bytes = PSA_BITS_TO_BYTES(bits);
     psa_status_t status;
+    psa_key_attributes_t attributes;
 
     if (!key_type_is_raw_bytes(slot->attr.type)) {
         return PSA_ERROR_INVALID_ARGUMENT;
@@ -4279,7 +4275,7 @@ static psa_status_t psa_generate_derived_key_internal(
     }
 
     slot->attr.bits = (psa_key_bits_t) bits;
-    psa_key_attributes_t attributes = {
+    attributes = (psa_key_attributes_t) {
         .core = slot->attr
     };
 
@@ -4379,21 +4375,10 @@ static psa_status_t psa_hash_try_support(psa_algorithm_t alg)
     return status;
 }
 
-static psa_status_t psa_key_derivation_setup_kdf(
+static psa_status_t psa_key_derivation_set_maximum_capacity(
     psa_key_derivation_operation_t *operation,
     psa_algorithm_t kdf_alg)
 {
-    /* Make sure that operation->ctx is properly zero-initialised. (Macro
-     * initialisers for this union leave some bytes unspecified.) */
-    memset(&operation->ctx, 0, sizeof(operation->ctx));
-
-    /* Make sure that kdf_alg is a supported key derivation algorithm. */
-    if (!is_kdf_alg_supported(kdf_alg)) {
-        return PSA_ERROR_NOT_SUPPORTED;
-    }
-
-    /* All currently supported key derivation algorithms are based on a
-     * hash algorithm. */
     psa_algorithm_t hash_alg = PSA_ALG_HKDF_GET_HASH(kdf_alg);
     size_t hash_size = PSA_HASH_LENGTH(hash_alg);
     if (hash_size == 0) {
@@ -4408,14 +4393,48 @@ static psa_status_t psa_key_derivation_setup_kdf(
         return status;
     }
 
-    if ((PSA_ALG_IS_TLS12_PRF(kdf_alg) ||
-         PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg)) &&
-        !(hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+#if defined(PSA_WANT_ALG_HKDF)
+    if (PSA_ALG_IS_HKDF(kdf_alg)) {
+        operation->capacity = 255 * hash_size;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PRF)
+    if (PSA_ALG_IS_TLS12_PRF(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        operation->capacity = SIZE_MAX;
+    } else
+#endif
+#if defined(PSA_WANT_ALG_TLS12_PSK_TO_MS)
+    if (PSA_ALG_IS_TLS12_PSK_TO_MS(kdf_alg) &&
+        (hash_alg == PSA_ALG_SHA_256 || hash_alg == PSA_ALG_SHA_384)) {
+        /* Master Secret is always 48 bytes
+         * https://datatracker.ietf.org/doc/html/rfc5246.html#section-8.1 */
+        operation->capacity = 48U;
+    } else
+#endif
+    {
+        (void) hash_size;
+        status = PSA_ERROR_NOT_SUPPORTED;
+    }
+    return status;
+}
+
+
+static psa_status_t psa_key_derivation_setup_kdf(
+    psa_key_derivation_operation_t *operation,
+    psa_algorithm_t kdf_alg)
+{
+    /* Make sure that operation->ctx is properly zero-initialised. (Macro
+     * initialisers for this union leave some bytes unspecified.) */
+    memset(&operation->ctx, 0, sizeof(operation->ctx));
+    /* Make sure that kdf_alg is a supported key derivation algorithm. */
+    if (!is_kdf_alg_supported(kdf_alg)) {
         return PSA_ERROR_NOT_SUPPORTED;
     }
 
-    operation->capacity = 255 * hash_size;
-    return PSA_SUCCESS;
+    psa_status_t status = psa_key_derivation_set_maximum_capacity(operation,
+                                                                  kdf_alg);
+    return status;
 }
 
 static psa_status_t psa_key_agreement_try_support(psa_algorithm_t alg)
@@ -4891,14 +4910,16 @@ static psa_status_t psa_key_agreement_raw_internal(psa_algorithm_t alg,
                                                    size_t shared_secret_size,
                                                    size_t *shared_secret_length)
 {
+    mbedtls_ecp_keypair *ecp = NULL;
+    psa_status_t status;
+
     switch (alg) {
 #if defined(MBEDTLS_PSA_BUILTIN_ALG_ECDH)
         case PSA_ALG_ECDH:
             if (!PSA_KEY_TYPE_IS_ECC_KEY_PAIR(private_key->attr.type)) {
                 return PSA_ERROR_INVALID_ARGUMENT;
             }
-            mbedtls_ecp_keypair *ecp = NULL;
-            psa_status_t status = mbedtls_psa_ecp_load_representation(
+            status = mbedtls_psa_ecp_load_representation(
                 private_key->attr.type,
                 private_key->attr.bits,
                 private_key->key.data,
@@ -4916,6 +4937,8 @@ static psa_status_t psa_key_agreement_raw_internal(psa_algorithm_t alg,
             return status;
 #endif /* MBEDTLS_PSA_BUILTIN_ALG_ECDH */
         default:
+            (void) ecp;
+            (void) status;
             (void) private_key;
             (void) peer_key;
             (void) peer_key_length;
@@ -5011,6 +5034,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
     psa_status_t status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_status_t unlock_status = PSA_ERROR_CORRUPTION_DETECTED;
     psa_key_slot_t *slot = NULL;
+    size_t expected_length;
 
     if (!PSA_ALG_IS_KEY_AGREEMENT(alg)) {
         status = PSA_ERROR_INVALID_ARGUMENT;
@@ -5030,7 +5054,7 @@ psa_status_t psa_raw_key_agreement(psa_algorithm_t alg,
      * PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() is exact so the point is moot.
      * If FFDH is implemented, PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE() can easily
      * be exact for it as well. */
-    size_t expected_length =
+    expected_length =
         PSA_RAW_KEY_AGREEMENT_OUTPUT_SIZE(slot->attr.type, slot->attr.bits);
     if (output_size < expected_length) {
         status = PSA_ERROR_BUFFER_TOO_SMALL;

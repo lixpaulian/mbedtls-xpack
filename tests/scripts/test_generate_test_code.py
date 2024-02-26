@@ -2,19 +2,7 @@
 # Unit test for generate_test_code.py
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """
 Unit tests for generate_test_code.py
@@ -647,7 +635,7 @@ void func()
         self.assertEqual(arg, [])
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -690,7 +678,7 @@ exit:
 
         expected = '''#line 1 "test_suite_ut.function"
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -750,7 +738,7 @@ exit:
 void
 
 
-test_func()
+test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -803,7 +791,7 @@ exit:
 
 
 
-void test_func()
+void test_func(void)
 {
     ba ba black sheep
     have you any wool
@@ -1139,7 +1127,7 @@ void func2()
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 13 "test_suite_ut.function"
-void test_func1()
+void test_func1(void)
 {
 exit:
     ;
@@ -1156,7 +1144,7 @@ void test_func1_wrapper( void ** params )
 #if defined(MBEDTLS_ENTROPY_NV_SEED)
 #if defined(MBEDTLS_FS_IO)
 #line 19 "test_suite_ut.function"
-void test_func2()
+void test_func2(void)
 {
 exit:
     ;

@@ -11,19 +11,8 @@ Basic usage, to read the Mbed TLS configuration:
 # compatible with Python 3.4.
 
 ## Copyright The Mbed TLS Contributors
-## SPDX-License-Identifier: Apache-2.0
+## SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 ##
-## Licensed under the Apache License, Version 2.0 (the "License"); you may
-## not use this file except in compliance with the License.
-## You may obtain a copy of the License at
-##
-## http://www.apache.org/licenses/LICENSE-2.0
-##
-## Unless required by applicable law or agreed to in writing, software
-## distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-## WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-## See the License for the specific language governing permissions and
-## limitations under the License.
 
 import os
 import re
@@ -225,7 +214,11 @@ def is_seamless_alt(name):
     Exclude alternative implementations of library functions since they require
     an implementation of the relevant functions and an xxx_alt.h header.
     """
-    if name == 'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT':
+    if name in (
+            'MBEDTLS_PLATFORM_GMTIME_R_ALT',
+            'MBEDTLS_PLATFORM_SETUP_TEARDOWN_ALT',
+            'MBEDTLS_PLATFORM_ZEROIZE_ALT',
+    ):
         # Similar to non-platform xxx_ALT, requires platform_alt.h
         return False
     return name.startswith('MBEDTLS_PLATFORM_')
@@ -346,6 +339,22 @@ def no_deprecated_adapter(adapter):
         if name == 'MBEDTLS_DEPRECATED_REMOVED':
             return True
         if name in DEPRECATED:
+            return False
+        if adapter is None:
+            return active
+        return adapter(name, active, section)
+    return continuation
+
+def no_platform_adapter(adapter):
+    """Modify an adapter to disable platform symbols.
+
+    ``no_platform_adapter(adapter)(name, active, section)`` is like
+    ``adapter(name, active, section)``, but unsets all platform symbols other
+    ``than MBEDTLS_PLATFORM_C.
+    """
+    def continuation(name, active, section):
+        # Allow MBEDTLS_PLATFORM_C but remove all other platform symbols.
+        if name.startswith('MBEDTLS_PLATFORM_') and name != 'MBEDTLS_PLATFORM_C':
             return False
         if adapter is None:
             return active
@@ -523,6 +532,10 @@ if __name__ == '__main__':
         add_adapter('full_no_deprecated', no_deprecated_adapter(full_adapter),
                     """Uncomment most non-deprecated features.
                     Like "full", but without deprecated features.
+                    """)
+        add_adapter('full_no_platform', no_platform_adapter(full_adapter),
+                    """Uncomment most non-platform features.
+                    Like "full", but without platform features.
                     """)
         add_adapter('realfull', realfull_adapter,
                     """Uncomment all boolean #defines.

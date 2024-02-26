@@ -1,20 +1,8 @@
 /*
- *  MbedTLS SSL context deserializer from base64 code
+ *  Mbed TLS SSL context deserializer from base64 code
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 #if !defined(MBEDTLS_CONFIG_FILE)
@@ -128,12 +116,12 @@ const char buf_ln_err[] = "Buffer does not have enough data to complete the pars
 /*
  * Basic printing functions
  */
-void print_version()
+void print_version(void)
 {
     printf("%s v%d.%d\n", PROG_NAME, VER_MAJOR, VER_MINOR);
 }
 
-void print_usage()
+void print_usage(void)
 {
     print_version();
     printf("\nThis program is used to deserialize an Mbed TLS SSL session from the base64 code provided\n"
@@ -182,7 +170,7 @@ void printf_err(const char *str, ...)
 /*
  * Exit from the program in case of error
  */
-void error_exit()
+void error_exit(void)
 {
     if (NULL != b64_file) {
         fclose(b64_file);

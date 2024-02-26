@@ -2,19 +2,7 @@
 # Test suites code generator.
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 
 """
 This script is a key part of Mbed TLS test suites framework. For
@@ -653,6 +641,11 @@ def parse_function_code(funcs_f, dependencies, suite_dependencies):
     # Prefix test function name with 'test_'
     code = code.replace(name, 'test_' + name, 1)
     name = 'test_' + name
+
+    # If a test function has no arguments then add 'void' argument to
+    # avoid "-Wstrict-prototypes" warnings from clang
+    if len(args) == 0:
+        code = code.replace('()', '(void)', 1)
 
     for line in funcs_f:
         if re.search(END_CASE_REGEX, line):

@@ -2,19 +2,7 @@
  *  SSLv3/TLSv1 shared functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 /*
  *  The SSL 3.0 specification was drafted by Netscape in 1996,
@@ -1004,8 +992,7 @@ static int ssl_populate_transform(mbedtls_ssl_transform *transform,
     !defined(MBEDTLS_SSL_EXPORT_KEYS) && \
     !defined(MBEDTLS_SSL_DTLS_CONNECTION_ID) && \
     !defined(MBEDTLS_DEBUG_C)
-    ssl = NULL; /* make sure we don't use it except for those cases */
-    (void) ssl;
+    (void) ssl; /* ssl is unused except for those cases */
 #endif
 
     /*
@@ -5267,7 +5254,7 @@ const mbedtls_ssl_session *mbedtls_ssl_get_session_pointer(const mbedtls_ssl_con
          (SSL_SERIALIZED_SESSION_CONFIG_ETM << SSL_SERIALIZED_SESSION_CONFIG_ETM_BIT) | \
          (SSL_SERIALIZED_SESSION_CONFIG_TICKET << SSL_SERIALIZED_SESSION_CONFIG_TICKET_BIT)))
 
-static unsigned char ssl_serialized_session_header[] = {
+static const unsigned char ssl_serialized_session_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -6136,7 +6123,7 @@ void mbedtls_ssl_session_free(mbedtls_ssl_session *session)
          (SSL_SERIALIZED_CONTEXT_CONFIG_ALPN << SSL_SERIALIZED_CONTEXT_CONFIG_ALPN_BIT) | \
          0u))
 
-static unsigned char ssl_serialized_context_header[] = {
+static const unsigned char ssl_serialized_context_header[] = {
     MBEDTLS_VERSION_MAJOR,
     MBEDTLS_VERSION_MINOR,
     MBEDTLS_VERSION_PATCH,
@@ -6834,7 +6821,7 @@ void mbedtls_ssl_config_init(mbedtls_ssl_config *conf)
 }
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-static int ssl_preset_default_hashes[] = {
+static const int ssl_preset_default_hashes[] = {
 #if defined(MBEDTLS_SHA512_C)
     MBEDTLS_MD_SHA512,
 #endif
@@ -6852,14 +6839,14 @@ static int ssl_preset_default_hashes[] = {
 };
 #endif
 
-static int ssl_preset_suiteb_ciphersuites[] = {
+static const int ssl_preset_suiteb_ciphersuites[] = {
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     MBEDTLS_TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     0
 };
 
 #if defined(MBEDTLS_KEY_EXCHANGE_WITH_CERT_ENABLED)
-static int ssl_preset_suiteb_hashes[] = {
+static const int ssl_preset_suiteb_hashes[] = {
     MBEDTLS_MD_SHA256,
     MBEDTLS_MD_SHA384,
     MBEDTLS_MD_NONE
@@ -6867,7 +6854,7 @@ static int ssl_preset_suiteb_hashes[] = {
 #endif
 
 #if defined(MBEDTLS_ECP_C)
-static mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
+static const mbedtls_ecp_group_id ssl_preset_suiteb_curves[] = {
 #if defined(MBEDTLS_ECP_DP_SECP256R1_ENABLED)
     MBEDTLS_ECP_DP_SECP256R1,
 #endif

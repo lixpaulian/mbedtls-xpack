@@ -2,19 +2,7 @@
  *  Elliptic curves over GF(p): generic functions
  *
  *  Copyright The Mbed TLS Contributors
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Licensed under the Apache License, Version 2.0 (the "License"); you may
- *  not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- *  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ *  SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
  */
 
 /*
@@ -166,7 +154,7 @@ static int ecp_drbg_seed(ecp_drbg_context *ctx,
     unsigned char secret_bytes[MBEDTLS_ECP_MAX_BYTES];
     /* The list starts with strong hashes */
     const mbedtls_md_type_t md_type =
-        (const mbedtls_md_type_t) (mbedtls_md_list()[0]);
+        (mbedtls_md_type_t) (mbedtls_md_list()[0]);
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
 
     if (secret_len > MBEDTLS_ECP_MAX_BYTES) {
@@ -2593,6 +2581,7 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
                        void *p_rng)
 {
     int ret = MBEDTLS_ERR_ERROR_CORRUPTION_DETECTED;
+    int have_rng = 1;
     size_t i;
     unsigned char b;
     mbedtls_ecp_point RP;
@@ -2626,7 +2615,6 @@ static int ecp_mul_mxz(mbedtls_ecp_group *grp, mbedtls_ecp_point *R,
     MOD_ADD(RP.X);
 
     /* Randomize coordinates of the starting point */
-    int have_rng = 1;
 #if defined(MBEDTLS_ECP_NO_INTERNAL_RNG)
     if (f_rng == NULL) {
         have_rng = 0;

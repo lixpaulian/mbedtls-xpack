@@ -3,19 +3,7 @@
 # compat.sh
 #
 # Copyright The Mbed TLS Contributors
-# SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# SPDX-License-Identifier: Apache-2.0 OR GPL-2.0-or-later
 #
 # Purpose
 #
@@ -110,6 +98,7 @@ FILTER=""
 EXCLUDE='NULL\|DES\|RC4\|ARCFOUR\|ARIA\|CHACHA20-POLY1305'
 VERBOSE=""
 MEMCHECK=0
+PRESERVE_LOGS=0
 PEERS="OpenSSL$PEER_GNUTLS mbedTLS"
 
 # hidden option: skip DTLS with OpenSSL
@@ -128,8 +117,39 @@ print_usage() {
     printf "            \tAlso available: GnuTLS (needs v3.2.15 or higher)\n"
     printf "  -M|--memcheck\tCheck memory leaks and errors.\n"
     printf "  -v|--verbose\tSet verbose output.\n"
+    printf "     --list-test-cases\tList all potential test cases (No Execution)\n"
     printf "     --outcome-file\tFile where test outcomes are written\n"
     printf "                   \t(default: \$MBEDTLS_TEST_OUTCOME_FILE, none if empty)\n"
+    printf "     --preserve-logs\tPreserve logs of successful tests as well\n"
+}
+
+# print_test_case <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+print_test_case() {
+    for i in $3; do
+        uniform_title $1 $2 $i
+        echo $TITLE
+    done
+}
+
+# list_test_case lists all potential test cases in compat.sh without execution
+list_test_cases() {
+    for MODE in $MODES; do
+        for TYPE in $TYPES; do
+            for VERIFY in $VERIFIES; do
+                VERIF=$(echo $VERIFY | tr '[:upper:]' '[:lower:]')
+                reset_ciphersuites
+                add_common_ciphersuites
+                add_openssl_ciphersuites
+                add_gnutls_ciphersuites
+                add_mbedtls_ciphersuites
+                print_test_case m O "$O_CIPHERS"
+                print_test_case O m "$O_CIPHERS"
+                print_test_case m G "$G_CIPHERS"
+                print_test_case G m "$G_CIPHERS"
+                print_test_case m m "$M_CIPHERS"
+            done
+        done
+    done
 }
 
 get_options() {
@@ -159,8 +179,17 @@ get_options() {
             -M|--memcheck)
                 MEMCHECK=1
                 ;;
+            # Please check scripts/check_test_cases.py correspondingly
+            # if you have to modify option, --list-test-cases
+            --list-test-cases)
+                list_test_cases
+                exit $?
+                ;;
             --outcome-file)
                 shift; MBEDTLS_TEST_OUTCOME_FILE=$1
+                ;;
+            --preserve-logs)
+                PRESERVE_LOGS=1
                 ;;
             -h|--help)
                 print_usage
@@ -240,7 +269,7 @@ filter_ciphersuites()
 {
     if [ "X" != "X$FILTER" -o "X" != "X$EXCLUDE" ];
     then
-        # Ciphersuite for mbed TLS
+        # Ciphersuite for Mbed TLS
         M_CIPHERS=$( filter "$M_CIPHERS" )
 
         # Ciphersuite for OpenSSL
@@ -250,7 +279,7 @@ filter_ciphersuites()
         G_CIPHERS=$( filter "$G_CIPHERS" )
     fi
 
-    # For GnuTLS client -> mbed TLS server,
+    # For GnuTLS client -> Mbed TLS server,
     # we need to force IPv4 by connecting to 127.0.0.1 but then auth fails
     if is_dtls "$MODE" && [ "X$VERIFY" = "XYES" ]; then
         G_CIPHERS=""
@@ -612,7 +641,16 @@ add_gnutls_ciphersuites()
             ;;
 
         "RSA")
-            if [ `minor_ver "$MODE"` -gt 0 ]
+            # TLS-RSA-WITH-NULL-SHA256 is a (D)TLS 1.2-only cipher suite,
+            # like all SHA256 cipher suites. But Mbed TLS supports it with
+            # (D)TLS 1.0 and 1.1 as well. So do ancient versions of GnuTLS,
+            # but this was considered a bug which was fixed in GnuTLS 3.4.7.
+            # Check the GnuTLS support list to see what the protocol version
+            # requirement is for that cipher suite.
+            if [ `minor_ver "$MODE"` -ge 3 ] || {
+                   [ `minor_ver "$MODE"` -gt 0 ] &&
+                   $GNUTLS_CLI --list | grep -q '^TLS_RSA_NULL_SHA256.*0$'
+               }
             then
                 M_CIPHERS="$M_CIPHERS                           \
                     TLS-RSA-WITH-NULL-SHA256                    \
@@ -936,7 +974,7 @@ setup_arguments()
     fi
 
     M_SERVER_ARGS="server_port=$PORT server_addr=0.0.0.0 force_version=$MODE arc4=1"
-    O_SERVER_ARGS="-accept $PORT -cipher NULL,ALL -$O_MODE"
+    O_SERVER_ARGS="-accept $PORT -cipher ALL,COMPLEMENTOFALL -$O_MODE"
     G_SERVER_ARGS="-p $PORT --http $G_MODE"
     G_SERVER_PRIO="NORMAL:${G_PRIO_CCM}+ARCFOUR-128:+NULL:+MD5:+PSK:+DHE-PSK:+ECDHE-PSK:+SHA256:+SHA384:+RSA-PSK:-VERS-TLS-ALL:$G_PRIO_MODE"
 
@@ -1182,12 +1220,16 @@ record_outcome() {
     fi
 }
 
+save_logs() {
+    cp $SRV_OUT c-srv-${TESTS}.log
+    cp $CLI_OUT c-cli-${TESTS}.log
+}
+
 # display additional information if test case fails
 report_fail() {
     FAIL_PROMPT="outputs saved to c-srv-${TESTS}.log, c-cli-${TESTS}.log"
     record_outcome "FAIL" "$FAIL_PROMPT"
-    cp $SRV_OUT c-srv-${TESTS}.log
-    cp $CLI_OUT c-cli-${TESTS}.log
+    save_logs
     echo "  ! $FAIL_PROMPT"
 
     if [ "${LOG_FAILURE_ON_STDOUT:-0}" != 0 ]; then
@@ -1199,15 +1241,21 @@ report_fail() {
     fi
 }
 
+# uniform_title <CLIENT> <SERVER> <STANDARD_CIPHER_SUITE>
+# $TITLE is considered as test case description for both --list-test-cases and
+# MBEDTLS_TEST_OUTCOME_FILE. This function aims to control the format of
+# each test case description.
+uniform_title() {
+    TITLE="$1->$2 $MODE,$VERIF $3"
+}
+
 # run_client <name> <cipher>
 run_client() {
     # announce what we're going to do
     TESTS=$(( $TESTS + 1 ))
-    TITLE="`echo $1 | head -c1`->`echo $SERVER_NAME | head -c1`"
-    TITLE="$TITLE $MODE,$VERIF $2"
-    printf "%s " "$TITLE"
-    LEN=$(( 72 - `echo "$TITLE" | wc -c` ))
-    for i in `seq 1 $LEN`; do printf '.'; done; printf ' '
+    uniform_title "${1%"${1#?}"}" "${SERVER_NAME%"${SERVER_NAME#?}"}" $2
+    DOTS72="........................................................................"
+    printf "%s %.*s " "$TITLE" "$((71 - ${#TITLE}))" "$DOTS72"
 
     # should we skip?
     if [ "X$SKIP_NEXT" = "XYES" ]; then
@@ -1307,6 +1355,9 @@ run_client() {
     case $RESULT in
         "0")
             record_outcome "PASS"
+            if [ "$PRESERVE_LOGS" -gt 0 ]; then
+                save_logs
+            fi
             ;;
         "1")
             record_outcome "SKIP"
